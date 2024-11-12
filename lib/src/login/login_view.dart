@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'login_service.dart'; // Assurez-vous d'importer votre service
+import 'login_service.dart';
 
 class LoginView extends StatefulWidget {
   static const routeName = '/login';
@@ -11,10 +11,11 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
-  final _emailController = TextEditingController(); // Remplacez par email
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final LoginService _loginService = LoginService(); // Instance du service
-  String _message = ''; // Pour afficher le message de retour
+  final LoginService _loginService = LoginService();
+  String _message = '';
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +29,7 @@ class _LoginViewState extends State<LoginView> {
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'Email'),
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 16),
             TextField(
@@ -36,33 +38,63 @@ class _LoginViewState extends State<LoginView> {
               obscureText: true,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () async {
-                // Obtenez l'email et le mot de passe depuis les contrôleurs
-                String email = _emailController.text;
-                String password = _passwordController.text;
-
-                // Appelez le service de connexion avec les données saisies
-                String response = await _loginService.login(email, password);
-
-                // Affichez le message de retour de l'API dans l'interface
-                setState(() {
-                  _message = response;
-                });
-
-                // Redirection ou autre logique de connexion
-                if (response == 'Login successful') {
-                  Navigator.of(context).pushReplacementNamed('/');
-                }
-              },
-              child: const Text('Se connecter'),
-            ),
+            _isLoading
+                ? const CircularProgressIndicator()
+                : ElevatedButton(
+                    onPressed: _handleLogin,
+                    child: const Text('Se connecter'),
+                  ),
             const SizedBox(height: 16),
-            Text(_message), // Affiche le message renvoyé par l'API
+            Text(
+              _message,
+              style: TextStyle(
+                color:
+                    _message.startsWith('Failed') ? Colors.red : Colors.green,
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _handleLogin() async {
+    setState(() {
+      _isLoading = true;
+      _message = '';
+    });
+
+    String email = _emailController.text.trim();
+    String password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _message = 'Veuillez remplir tous les champs.';
+      });
+      return;
+    }
+
+    final response = await _loginService.login(email, password);
+
+    if (response['success'] == true) {
+      final accessToken = response['access_token'];
+      final tokenType = response['token_type'];
+
+      // Affiche le token et le type de token dans le message
+      setState(() {
+        _isLoading = false;
+        _message = 'Connexion réussie!\nToken: $accessToken\nType: $tokenType';
+      });
+
+      // Redirection vers la page principale (optionnel si nécessaire)
+      // Navigator.of(context).pushReplacementNamed('/');
+    } else {
+      setState(() {
+        _isLoading = false;
+        _message = 'Échec de la connexion: ${response['message']}';
+      });
+    }
   }
 
   @override
