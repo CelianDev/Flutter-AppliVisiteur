@@ -21,7 +21,8 @@ class LoginService {
         },
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 &&
+          response.data.containsKey('access_token')) {
         return {
           'success': true,
           'access_token': response.data['access_token'],
@@ -30,9 +31,14 @@ class LoginService {
       } else {
         return {
           'success': false,
-          'message': 'Unexpected response status: ${response.statusCode}',
+          'message': 'Invalid credentials or unexpected response',
         };
       }
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'message': e.response?.data['message'] ?? 'Connection error',
+      };
     } catch (e) {
       return {
         'success': false,
