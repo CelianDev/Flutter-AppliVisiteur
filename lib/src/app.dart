@@ -6,6 +6,7 @@ import 'settings/settings_controller.dart';
 import 'settings/settings_view.dart';
 
 import 'login/login_view.dart';
+import 'dashboard/dashboard_view.dart';
 
 /// The Widget that configures your application.
 class MyApp extends StatelessWidget {
@@ -71,6 +72,8 @@ class MyApp extends StatelessWidget {
                     return SettingsView(controller: settingsController);
                   case LoginView.routeName:
                     return const LoginView();
+                  case DashboardView.routeName:
+                    return const DashboardView();
                   default:
                     return const LoginView();
                 }
