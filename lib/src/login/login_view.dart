@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'login_service.dart';
 
 class LoginView extends StatefulWidget {
   static const routeName = '/login';
@@ -10,8 +11,11 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final LoginService _loginService = LoginService();
+  String _message = '';
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -23,8 +27,9 @@ class _LoginViewState extends State<LoginView> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
-              controller: _usernameController,
-              decoration: const InputDecoration(labelText: 'Username'),
+              controller: _emailController,
+              decoration: const InputDecoration(labelText: 'Email'),
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 16),
             TextField(
@@ -33,12 +38,19 @@ class _LoginViewState extends State<LoginView> {
               obscureText: true,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                // Ajoutez votre logique d'authentification ici
-                Navigator.of(context).pushReplacementNamed('/');
-              },
-              child: const Text('Se connecter'),
+            _isLoading
+                ? const CircularProgressIndicator()
+                : ElevatedButton(
+                    onPressed: _handleLogin,
+                    child: const Text('Se connecter'),
+                  ),
+            const SizedBox(height: 16),
+            Text(
+              _message,
+              style: TextStyle(
+                color:
+                    _message.startsWith('Failed') ? Colors.red : Colors.green,
+              ),
             ),
           ],
         ),
@@ -46,9 +58,48 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
+  Future<void> _handleLogin() async {
+    setState(() {
+      _isLoading = true;
+      _message = '';
+    });
+
+    String email = _emailController.text.trim();
+    String password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _message = 'Veuillez remplir tous les champs.';
+      });
+      return;
+    }
+
+    final response = await _loginService.login(email, password);
+
+    if (response['success'] == true) {
+      final accessToken = response['access_token'];
+      final tokenType = response['token_type'];
+
+      // Affiche le token et le type de token dans le message
+      setState(() {
+        _isLoading = false;
+        _message = 'Connexion réussie!\nToken: $accessToken\nType: $tokenType';
+      });
+
+      // Redirection vers la page principale (optionnel si nécessaire)
+      // Navigator.of(context).pushReplacementNamed('/');
+    } else {
+      setState(() {
+        _isLoading = false;
+        _message = 'Échec de la connexion: ${response['message']}';
+      });
+    }
+  }
+
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
