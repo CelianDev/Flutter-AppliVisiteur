@@ -1,24 +1,19 @@
 import 'package:flutter/material.dart';
-import 'login_service.dart';
+import 'package:provider/provider.dart';
+import 'login_model.dart';
 
-class LoginView extends StatefulWidget {
+class LoginView extends StatelessWidget {
   static const routeName = '/login';
 
-  const LoginView({super.key});
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
-  @override
-  State<LoginView> createState() => _LoginViewState();
-}
-
-class _LoginViewState extends State<LoginView> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final LoginService _loginService = LoginService();
-  String _message = '';
-  bool _isLoading = false;
+  LoginView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final loginModel = context.watch<LoginModel>();
+
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
       body: Padding(
@@ -38,69 +33,29 @@ class _LoginViewState extends State<LoginView> {
               obscureText: true,
             ),
             const SizedBox(height: 24),
-            _isLoading
+            loginModel.isLoading
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
-                    onPressed: _handleLogin,
+                    onPressed: () {
+                      loginModel.login(
+                        _emailController.text.trim(),
+                        _passwordController.text,
+                      );
+                    },
                     child: const Text('Se connecter'),
                   ),
             const SizedBox(height: 16),
             Text(
-              _message,
+              loginModel.message,
               style: TextStyle(
-                color:
-                    _message.startsWith('Failed') ? Colors.red : Colors.green,
+                color: loginModel.message.startsWith('Échec')
+                    ? Colors.red
+                    : Colors.green,
               ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  Future<void> _handleLogin() async {
-    setState(() {
-      _isLoading = true;
-      _message = '';
-    });
-
-    String email = _emailController.text.trim();
-    String password = _passwordController.text;
-
-    if (email.isEmpty || password.isEmpty) {
-      setState(() {
-        _isLoading = false;
-        _message = 'Veuillez remplir tous les champs.';
-      });
-      return;
-    }
-
-    final response = await _loginService.login(email, password);
-
-    if (response['success'] == true) {
-      final accessToken = response['access_token'];
-      final tokenType = response['token_type'];
-
-      // Affiche le token et le type de token dans le message
-      setState(() {
-        _isLoading = false;
-        _message = 'Connexion réussie!\nToken: $accessToken\nType: $tokenType';
-      });
-
-      // Redirection vers la page principale (optionnel si nécessaire)
-      // Navigator.of(context).pushReplacementNamed('/');
-    } else {
-      setState(() {
-        _isLoading = false;
-        _message = 'Échec de la connexion: ${response['message']}';
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
   }
 }

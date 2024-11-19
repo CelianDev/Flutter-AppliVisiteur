@@ -16,6 +16,7 @@ dependencies:
   flutter_dotenv: ^5.2.1
   flutter_localizations:
     sdk: flutter
+  provider: ^6.1.2
 
 dev_dependencies:
   flutter_test:
