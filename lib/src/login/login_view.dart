@@ -14,45 +14,129 @@ class _LoginViewState extends State<LoginView> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final LoginService _loginService = LoginService();
-  String _message = '';
   bool _isLoading = false;
+  String _message = '';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 24),
-            _isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _handleLogin,
-                    child: const Text('Se connecter'),
+      backgroundColor: const Color(0xFFE6F1FA), // Arrière-plan bleu clair
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+                maxWidth: 400), // Largeur maximale pour les grands écrans
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Logo
+                Image.asset(
+                  'assets/images/logo_gsb.png', // Assurez-vous que l'image est dans le dossier assets et est déclarée dans pubspec.yaml
+                  height: 100,
+                ),
+                const SizedBox(height: 40),
+                // Champ Email
+                Theme(
+                  data: Theme.of(context).copyWith(
+                    primaryColor: const Color(
+                        0xFF2B547E), // Couleur du texte du label en focus
                   ),
-            const SizedBox(height: 16),
-            Text(
-              _message,
-              style: TextStyle(
-                color:
-                    _message.startsWith('Failed') ? Colors.red : Colors.green,
-              ),
+                  child: TextField(
+                    controller: _emailController,
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      labelStyle: const TextStyle(
+                        color: Color(0xFF66A2D3),
+                        fontWeight: FontWeight.bold,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: const BorderSide(
+                          color:
+                              Color(0xFF66A2D3), // Couleur bleu pour le focus
+                          width: 2.0,
+                        ),
+                      ),
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Champ Mot de passe
+                Theme(
+                  data: Theme.of(context).copyWith(
+                    primaryColor: const Color(
+                        0xFF2B547E), // Couleur du texte du label en focus
+                  ),
+                  child: TextField(
+                    controller: _passwordController,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      labelStyle: const TextStyle(
+                        color: Color(0xFF66A2D3),
+                        fontWeight: FontWeight.bold,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: const BorderSide(
+                          color:
+                              Color(0xFF66A2D3), // Couleur bleu pour le focus
+                          width: 2.0,
+                        ),
+                      ),
+                    ),
+                    obscureText: true,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Bouton de connexion
+                _isLoading
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: _handleLogin,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color(0xFF2B547E), // Couleur bleu foncé
+                          minimumSize: const Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          'Se connecter',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.white, // Couleur du texte en blanc
+                          ),
+                        ),
+                      ),
+                const SizedBox(height: 16),
+                // Message d'erreur ou de succès
+                Text(
+                  _message,
+                  style: TextStyle(
+                    color: _message.startsWith('Échec')
+                        ? Colors.red
+                        : Colors.green,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -77,24 +161,14 @@ class _LoginViewState extends State<LoginView> {
 
     final response = await _loginService.login(email, password);
 
-    if (response['success'] == true) {
-      final accessToken = response['access_token'];
-      final tokenType = response['token_type'];
-
-      // Affiche le token et le type de token dans le message
-      setState(() {
-        _isLoading = false;
-        _message = 'Connexion réussie!\nToken: $accessToken\nType: $tokenType';
-      });
-
-      // Redirection vers la page principale (optionnel si nécessaire)
-      // Navigator.of(context).pushReplacementNamed('/');
-    } else {
-      setState(() {
-        _isLoading = false;
-        _message = 'Échec de la connexion: ${response['message']}';
-      });
-    }
+    setState(() {
+      _isLoading = false;
+      if (response['success'] == true) {
+        _message = 'Connexion réussie !';
+      } else {
+        _message = 'Échec de la connexion : Email ou mot de passe incorrect.';
+      }
+    });
   }
 
   @override
