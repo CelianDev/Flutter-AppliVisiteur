@@ -17,6 +17,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   provider: ^6.1.2
+  flutter_secure_storage:
+  jwt_decoder:
 
 dev_dependencies:
   flutter_test:
