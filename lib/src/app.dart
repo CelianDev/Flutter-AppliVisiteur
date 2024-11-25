@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'settings/settings_controller.dart';
 import 'login/login_view.dart';
+import 'dashboard/dashboard_view.dart';
 import 'login/login_model.dart';
 import 'login/login_service.dart';
 
@@ -15,6 +16,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+                        return LoginView();
+                    case DashboardView.routeName:
+                        return const DashboardView();
+
     return MultiProvider(
       providers: [
         Provider<LoginService>(create: (_) => LoginService()),
