@@ -16,10 +16,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-                        return LoginView();
-                    case DashboardView.routeName:
-                        return const DashboardView();
-
     return MultiProvider(
       providers: [
         Provider<LoginService>(create: (_) => LoginService()),
@@ -38,9 +34,11 @@ class MyApp extends StatelessWidget {
                 builder: (BuildContext context) {
                   switch (routeSettings.name) {
                     case LoginView.routeName:
-                      return LoginView();
+                      return const LoginView();
+                    case DashboardView.routeName:
+                      return const DashboardView();
                     default:
-                      return LoginView();
+                      return const LoginView();
                   }
                 },
               );
