@@ -165,6 +165,9 @@ class _LoginViewState extends State<LoginView> {
       _isLoading = false;
       if (response['success'] == true) {
         _message = 'Connexion réussie !';
+
+        // Redirection vers DashboardView
+        Navigator.of(context).pushReplacementNamed('/dashboard');
       } else {
         _message = 'Échec de la connexion : Email ou mot de passe incorrect.';
       }
