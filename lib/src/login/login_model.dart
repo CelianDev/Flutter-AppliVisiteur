@@ -11,6 +11,8 @@ class LoginModel extends ChangeNotifier {
 
   LoginModel(this._loginService);
 
+  get isLoggedIn => true;
+
   Future<void> login(String email, String password) async {
     if (email.isEmpty || password.isEmpty) {
       _message = 'Veuillez remplir tous les champs.';
