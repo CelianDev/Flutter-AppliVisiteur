@@ -1,4 +1,3 @@
-// drawer.dart
 import 'package:flutter/material.dart';
 import '../auth/auth_service.dart';
 import '../dashboard/dashboard_view.dart';
@@ -8,8 +7,9 @@ import '../login/login_view.dart';
 class AppDrawer extends StatefulWidget {
   final bool isPermanent;
   final Future<void> Function()? userDataFetcher;
+  final ValueChanged<int>? onDestinationSelected;
 
-  const AppDrawer({super.key, this.isPermanent = false, this.userDataFetcher});
+  const AppDrawer({super.key, this.isPermanent = false, this.userDataFetcher, this.onDestinationSelected});
 
   @override
   State<AppDrawer> createState() => _AppDrawerState();
@@ -72,90 +72,57 @@ class _AppDrawerState extends State<AppDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    Widget menuList = ListView(
-      padding: EdgeInsets.zero,
-      children: <Widget>[
-        _isLoading
-            ? const DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Color(0xFF66A2D3),
-                ),
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                  ),
-                ),
-              )
-            : _userData != null
-                ? UserAccountsDrawerHeader(
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF66A2D3),
-                    ),
-                    accountName: Text(
-                      _userData!['username'] ?? 'Nom de l\'utilisateur',
-                      style: const TextStyle(
-                        fontSize: 18,
-                      ),
-                    ),
-                    accountEmail:
-                        Text(_userData!['email'] ?? 'email@example.com'),
-                    currentAccountPicture: _userData!['avatar'] != null
-                        ? CircleAvatar(
-                            backgroundImage: NetworkImage(_userData!['avatar']),
-                          )
-                        : const CircleAvatar(
-                            backgroundImage:
-                                AssetImage('assets/images/default_avatar.png'),
-                          ),
-                  )
-                : const DrawerHeader(
-                    decoration: BoxDecoration(
-                      color: Color(0xFF66A2D3),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'Utilisateur non connecté',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ),
-                  ),
-        ListTile(
-          leading: const Icon(Icons.dashboard),
-          title: const Text('Tableau de bord'),
-          onTap: () {
-            Navigator.pushNamed(context, DashboardView.routeName);
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.settings),
-          title: const Text('Paramètres'),
-          onTap: () {
-            Navigator.pushNamed(context, SettingsView.routeName);
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.logout),
-          title: const Text('Déconnexion'),
-          onTap: () async {
-            await _logout();
-          },
-        ),
-      ],
-    );
-
-    return widget.isPermanent
-        ? SizedBox(
-            width: 250, // Ajustez la largeur si nécessaire
-            child: Drawer(
-              elevation: 0,
-              child: menuList,
+    return Drawer(
+      child: Column(
+        children: [
+          const UserAccountsDrawerHeader(
+            decoration: BoxDecoration(
+              color: Color(0xFF66A2D3),
             ),
-          )
-        : Drawer(
-            child: menuList,
-          );
+            accountName: Text(
+              'Nom de l\'utilisateur',
+              style: TextStyle(fontSize: 18),
+            ),
+            accountEmail: Text('email@example.com'),
+            currentAccountPicture: CircleAvatar(
+              backgroundImage: NetworkImage(
+                'https://www.example.com/images/avatar.png',
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.dashboard),
+                  title: const Text('Tableau de bord'),
+                  onTap: () {
+                    onDestinationSelected?.call(0);
+                    if (!isPermanent) Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.receipt_long),
+                  title: const Text('Compte-Rendus'),
+                  onTap: () {
+                    onDestinationSelected?.call(1);
+                    if (!isPermanent) Navigator.pop(context);
+                  },
+                ),
+                // Ajoutez d'autres options ici
+              ],
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.logout),
+            title: const Text('Déconnexion'),
+            onTap: () {
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+          ),
+        ],
+      ),
+    );
   }
 }
