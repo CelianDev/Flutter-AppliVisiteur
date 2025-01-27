@@ -99,8 +99,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 backgroundImage: NetworkImage(_userData!['avatar']),
               )
             : const CircleAvatar(
-                backgroundImage:
-                    AssetImage('assets/images/default_avatar.png'),
+                backgroundImage: AssetImage('assets/images/default_avatar.png'),
               ),
       );
     } else {
@@ -142,10 +141,22 @@ class _AppDrawerState extends State<AppDrawer> {
                           },
                         ),
                         ListTile(
-                          leading: const Icon(Icons.receipt_long),
-                          title: const Text('Compte-Rendus'),
+                          leading: const Icon(
+                              Icons.create), // Icône pour "Nouveau rapport"
+                          title: const Text('Nouveau rapport'),
                           onTap: () {
-                            widget.onDestinationSelected?.call(1);
+                            widget.onDestinationSelected
+                                ?.call(1); // Index 1 : Page Nouveau Rapport
+                            if (!widget.isPermanent) Navigator.pop(context);
+                          },
+                        ),
+                        ListTile(
+                          leading: const Icon(
+                              Icons.list), // Icône pour "Mes comptes rendus"
+                          title: const Text('Mes comptes rendus'),
+                          onTap: () {
+                            widget.onDestinationSelected
+                                ?.call(2); // Index 2 : Page Mes Comptes Rendus
                             if (!widget.isPermanent) Navigator.pop(context);
                           },
                         ),
@@ -172,18 +183,22 @@ class _AppDrawerState extends State<AppDrawer> {
                     padding: EdgeInsets.zero,
                     children: [
                       ListTile(
-                        leading: const Icon(Icons.dashboard),
-                        title: const Text('Tableau de bord'),
+                        leading: const Icon(
+                            Icons.create), // Icône pour "Nouveau rapport"
+                        title: const Text('Nouveau rapport'),
                         onTap: () {
-                          widget.onDestinationSelected?.call(0);
+                          widget.onDestinationSelected
+                              ?.call(1); // Index 1 : Page Nouveau Rapport
                           if (!widget.isPermanent) Navigator.pop(context);
                         },
                       ),
                       ListTile(
-                        leading: const Icon(Icons.receipt_long),
-                        title: const Text('Compte-Rendus'),
+                        leading: const Icon(
+                            Icons.list), // Icône pour "Mes comptes rendus"
+                        title: const Text('Mes comptes rendus'),
                         onTap: () {
-                          widget.onDestinationSelected?.call(1);
+                          widget.onDestinationSelected
+                              ?.call(2); // Index 2 : Page Mes Comptes Rendus
                           if (!widget.isPermanent) Navigator.pop(context);
                         },
                       ),
