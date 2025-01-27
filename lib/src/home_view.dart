@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dashboard/dashboard_view.dart';
-import 'compte-rendus/compte_rendus_view.dart';
+import 'compte-rendus/views/compte_rendu_create_view.dart'; // Nouveau rapport
+import 'compte-rendus/views/compte_rendus_view.dart'; // Mes comptes rendus
 import 'menu/drawer.dart';
 
 class HomeView extends StatefulWidget {
@@ -15,9 +16,11 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   int _selectedIndex = 0;
 
+  // Ajoutez ici les pages pour la navigation
   final List<Widget> _pages = [
-    const DashboardView(),
-    const CompteRendusView(),
+    const DashboardView(), // Index 0 : Tableau de bord
+    const CompteRenduCreateView(), // Index 1 : Nouveau rapport
+    const CompteRendusView(), // Index 2 : Mes comptes rendus
   ];
 
   @override
@@ -27,7 +30,7 @@ class _HomeViewState extends State<HomeView> {
     return Scaffold(
       body: Row(
         children: [
-          // Utilisation d'AppDrawer pour le menu fixe
+          // Menu latéral fixe pour les grands écrans
           if (isDesktop)
             SizedBox(
               width: 250,
@@ -46,6 +49,7 @@ class _HomeViewState extends State<HomeView> {
           ),
         ],
       ),
+      // Menu Drawer pour les petits écrans
       drawer: isDesktop
           ? null
           : AppDrawer(
