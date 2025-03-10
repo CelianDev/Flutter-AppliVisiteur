@@ -1,42 +1,54 @@
 import 'package:flutter/material.dart';
-import 'package:jwt_decoder/jwt_decoder.dart'; // Pour décoder le token JWT
+import 'package:easy_stepper/easy_stepper.dart';
+import 'package:intl/intl.dart';
 import '../models/praticien_model.dart';
 import '../services/compte_rendus_api_service.dart';
-import '../models/compte_rendus_model.dart'; // Importez le modèle CompteRendu
-import '../services/compte_rendus_service.dart'; // Importez le service CompteRendusService
-import '../../auth/auth_service.dart'; // Importez AuthService
+import '../models/compte_rendus_model.dart';
+import '../services/compte_rendus_service.dart';
+import '../../auth/auth_service.dart';
 
-class CompteRenduCreateView extends StatefulWidget {
-  const CompteRenduCreateView({super.key});
+class CompteRenduCreateWizard extends StatefulWidget {
+  const CompteRenduCreateWizard({super.key});
 
   @override
-  State<CompteRenduCreateView> createState() => _CompteRenduCreateViewState();
+  State<CompteRenduCreateWizard> createState() =>
+      _CompteRenduCreateWizardState();
 }
 
-class _CompteRenduCreateViewState extends State<CompteRenduCreateView> {
+class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
   final _formKey = GlobalKey<FormState>();
-  final motifController = TextEditingController();
+  final dateFormat = DateFormat('dd/MM/yyyy');
   final dateVisiteController = TextEditingController();
-  final bilanController =
-      TextEditingController(); // Contrôleur pour le champ bilan
+  final bilanController = TextEditingController();
+  final autreMotifController = TextEditingController();
+  final TextEditingController quantiteController = TextEditingController();
 
   List<Praticien> praticiens = [];
   Praticien? selectedPraticien;
   bool _isLoading = true;
-  final AuthService _authService = AuthService(); // Instance de AuthService
+  int activeStep = 0;
+  final AuthService _authService = AuthService();
+
+  final List<String> motifs = [
+    "Périodicité",
+    "Nouveautés / Actualisations",
+    "Remontage",
+    "Demande du médecin",
+    "Autre"
+  ];
+
+  String? selectedMotif;
+  bool isAutreMotif = false;
+  List<Map<String, dynamic>> selectedMedicaments = [];
+  List<Map<String, dynamic>> availableMedicaments = [];
+  Map<String, dynamic>? selectedMedicament;
 
   @override
   void initState() {
     super.initState();
     _fetchPraticiens();
-  }
-
-  @override
-  void dispose() {
-    motifController.dispose();
-    dateVisiteController.dispose();
-    bilanController.dispose(); // Libérez le contrôleur
-    super.dispose();
+    _fetchMedicaments();
+    dateVisiteController.text = dateFormat.format(DateTime.now());
   }
 
   Future<void> _fetchPraticiens() async {
@@ -55,45 +67,61 @@ class _CompteRenduCreateViewState extends State<CompteRenduCreateView> {
     }
   }
 
-  Future<String?> getUuidVisiteur() async {
-    final token = await _authService.getJwtToken(); // Récupérez le token JWT
-    if (token == null) return null;
+  Future<void> _fetchMedicaments() async {
+    try {
+      final fetchedMedicaments =
+          await CompteRendusApiService().fetchMedicaments();
+      setState(() {
+        availableMedicaments = fetchedMedicaments;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Erreur lors du chargement des médicaments : $e')),
+      );
+    }
+  }
 
-    final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-    return decodedToken['sub']; // Supposons que 'sub' contient l'uuid_visiteur
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      locale: const Locale('fr', 'FR'),
+    );
+    if (picked != null) {
+      setState(() {
+        dateVisiteController.text = dateFormat.format(picked);
+      });
+    }
+  }
+
+  void _addMedicament() {
+    if (selectedMedicament != null && quantiteController.text.isNotEmpty) {
+      setState(() {
+        selectedMedicaments.add({
+          'id_medicament': selectedMedicament!['id'],
+          'nom': selectedMedicament!['nom'],
+          'quantite': int.parse(quantiteController.text),
+        });
+        selectedMedicament = null;
+        quantiteController.clear();
+      });
+    }
   }
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
-      final uuidVisiteur = await getUuidVisiteur(); // Récupérez l'uuid_visiteur
-      if (uuidVisiteur == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content:
-                  Text('Erreur : Impossible de récupérer l\'uuid_visiteur')),
-        );
-        return;
-      }
-
       final compteRendu = CompteRendu(
-        dateVisite:
-            DateTime.parse(dateVisiteController.text), // Convertir en DateTime
-        bilan:
-            bilanController.text, // Utilisez la valeur saisie par l'utilisateur
-        motif: motifController.text,
-        praticien: selectedPraticien!.id, // Utilisez l'ID du praticien
-        uuidVisiteur: uuidVisiteur, // Utilisez l'uuid_visiteur récupéré
-        medicaments: [], // Optionnel : ajoutez des médicaments si nécessaire
+        dateVisite: dateFormat.parse(dateVisiteController.text),
+        bilan: bilanController.text,
+        motif: isAutreMotif ? autreMotifController.text : selectedMotif!,
+        praticien: selectedPraticien!.id,
+        uuidVisiteur: "test_uuid", // Remplacer par l'UUID réel
+        medicaments: selectedMedicaments,
       );
-
-      try {
-        await CompteRendusService().addCompteRendu(compteRendu);
-        Navigator.pop(context);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : $e')),
-        );
-      }
+      Navigator.pop(context);
     }
   }
 
@@ -101,57 +129,202 @@ class _CompteRenduCreateViewState extends State<CompteRenduCreateView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Créer un compte rendu')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              _isLoading
-                  ? const CircularProgressIndicator()
-                  : DropdownButtonFormField<Praticien>(
-                      decoration: const InputDecoration(labelText: 'Praticien'),
-                      value: selectedPraticien,
-                      items: praticiens.map((praticien) {
-                        return DropdownMenuItem(
-                          value: praticien,
-                          child: Text('${praticien.nom} ${praticien.prenom}'),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedPraticien = value;
-                        });
-                      },
-                      validator: (value) => value == null
-                          ? 'Veuillez choisir un praticien'
-                          : null,
-                    ),
-              TextFormField(
-                controller: motifController,
-                decoration: const InputDecoration(labelText: 'Motif'),
-                validator: (value) => value!.isEmpty ? 'Champ requis' : null,
-              ),
-              TextFormField(
-                controller: dateVisiteController,
-                decoration: const InputDecoration(
-                    labelText: 'Date de visite (YYYY-MM-DD)'),
-                validator: (value) => value!.isEmpty ? 'Champ requis' : null,
-              ),
-              TextFormField(
-                controller: bilanController, // Champ pour le bilan
-                decoration: const InputDecoration(labelText: 'Bilan'),
-                validator: (value) => value!.isEmpty ? 'Champ requis' : null,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _submit,
-                child: const Text('Enregistrer'),
-              ),
+      body: Column(
+        children: [
+          EasyStepper(
+            activeStep: activeStep,
+            steps: const [
+              EasyStep(
+                  icon: Icon(Icons.calendar_today), title: 'Date de visite'),
+              EasyStep(icon: Icon(Icons.person), title: 'Praticien'),
+              EasyStep(icon: Icon(Icons.note), title: 'Motif'),
+              EasyStep(icon: Icon(Icons.description), title: 'Bilan'),
+              EasyStep(icon: Icon(Icons.medical_services), title: 'Médicament'),
             ],
+            onStepReached: (index) {
+              setState(() {
+                activeStep = index;
+              });
+            },
+          ),
+          Expanded(
+            child: Form(
+              key: _formKey,
+              child: _buildStepContent(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepContent() {
+    switch (activeStep) {
+      case 0:
+        return _stepDateVisite();
+      case 1:
+        return _stepPraticien();
+      case 2:
+        return _stepMotif();
+      case 3:
+        return _stepBilan();
+      case 4:
+        return _stepMedicament();
+      default:
+        return Container();
+    }
+  }
+
+  Widget _stepDateVisite() {
+    return Column(
+      children: [
+        Padding(
+          padding:
+              const EdgeInsets.all(16.0), // Ajoute un padding autour du champ
+          child: TextFormField(
+            controller: dateVisiteController,
+            decoration: InputDecoration(
+              labelText: 'Date de visite',
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.calendar_today),
+                onPressed: () => _selectDate(context),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 12.0), // Ajoute du padding interne
+            ),
+            readOnly: true,
           ),
         ),
-      ),
+        ElevatedButton(
+          onPressed: () => setState(() => activeStep++),
+          child: const Text('Suivant'),
+        ),
+      ],
+    );
+  }
+
+  Widget _stepPraticien() {
+    return Column(
+      children: [
+        if (_isLoading)
+          const Center(child: CircularProgressIndicator())
+        else
+          Padding(
+            padding:
+                const EdgeInsets.all(16.0), // Ajoute un padding autour du champ
+            child: DropdownButtonFormField<Praticien>(
+              decoration: const InputDecoration(
+                labelText: 'Praticien',
+                contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 12.0), // Ajoute du padding interne
+              ),
+              value: selectedPraticien,
+              items: praticiens.map((praticien) {
+                return DropdownMenuItem(
+                  value: praticien,
+                  child: Text(praticien.nom),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedPraticien = value;
+                });
+              },
+            ),
+          ),
+        ElevatedButton(
+          onPressed: () => setState(() => activeStep++),
+          child: const Text('Suivant'),
+        ),
+      ],
+    );
+  }
+
+  Widget _stepMotif() {
+    return Column(
+      children: [
+        Padding(
+          padding:
+              const EdgeInsets.all(16.0), // Ajoute un padding autour du champ
+          child: DropdownButtonFormField<String>(
+            decoration: const InputDecoration(
+              labelText: 'Motif',
+              contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 12.0), // Ajoute du padding interne
+            ),
+            value: selectedMotif,
+            items: motifs.map((motif) {
+              return DropdownMenuItem(value: motif, child: Text(motif));
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                selectedMotif = value;
+                isAutreMotif = value == 'Autre';
+              });
+            },
+          ),
+        ),
+        if (isAutreMotif)
+          Padding(
+            padding:
+                const EdgeInsets.all(16.0), // Ajoute un padding autour du champ
+            child: TextFormField(
+              controller: autreMotifController,
+              decoration: const InputDecoration(
+                labelText: 'Précisez votre motif',
+                contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 12.0), // Ajoute du padding interne
+              ),
+            ),
+          ),
+        ElevatedButton(
+          onPressed: () => setState(() => activeStep++),
+          child: const Text('Suivant'),
+        ),
+      ],
+    );
+  }
+
+  Widget _stepBilan() {
+    return Column(
+      children: [
+        Padding(
+          padding:
+              const EdgeInsets.all(16.0), // Ajoute un padding autour du champ
+          child: TextFormField(
+            controller: bilanController,
+            decoration: const InputDecoration(
+              labelText: 'Bilan',
+              contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 12.0), // Ajoute du padding interne
+            ),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () => setState(() => activeStep++),
+          child: const Text('Suivant'),
+        ),
+      ],
+    );
+  }
+
+  Widget _stepMedicament() {
+    return Column(
+      children: [
+        Padding(
+          padding:
+              const EdgeInsets.all(16.0), // Ajoute un padding autour du bouton
+          child: ElevatedButton(
+            onPressed: _submit,
+            child: const Text('Créer le compte rendu'),
+          ),
+        ),
+      ],
     );
   }
 }

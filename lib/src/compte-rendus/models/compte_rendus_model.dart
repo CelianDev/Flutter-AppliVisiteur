@@ -19,9 +19,9 @@ class CompteRendu {
   Map<String, dynamic> toMap() {
     final map = {
       'date_visite': dateVisite.toIso8601String(), // Convertir en ISO 8601
-      'bilan': bilan,
-      'motif': motif,
       'praticien': praticien,
+      'motif': motif,
+      'bilan': bilan,
       'uuid_visiteur': uuidVisiteur,
       'medicaments': medicaments, // Inclure les médicaments si présents
     };
@@ -32,9 +32,9 @@ class CompteRendu {
   factory CompteRendu.fromMap(Map<String, dynamic> map) {
     return CompteRendu(
       dateVisite: DateTime.parse(map['date_visite']),
-      bilan: map['bilan'],
-      motif: map['motif'],
       praticien: map['praticien'],
+      motif: map['motif'],
+      bilan: map['bilan'],
       uuidVisiteur: map['uuid_visiteur'],
       medicaments: map['medicaments'] != null
           ? List<Map<String, dynamic>>.from(map['medicaments'])

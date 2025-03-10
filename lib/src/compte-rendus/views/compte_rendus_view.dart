@@ -44,35 +44,47 @@ class _CompteRendusViewState extends State<CompteRendusView> {
                 return Card(
                   elevation: 3,
                   margin: const EdgeInsets.symmetric(vertical: 8),
-                  child: ListTile(
-                    title: Text(
-                      'Praticien ID: ${cr.praticien}', // Affichez l'ID du praticien
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Column(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Motif: ${cr.motif}'),
-                        Text('Bilan: ${cr.bilan}'), // Affichez le bilan
-                        // Text('Commentaire: ${cr.commentaire}'),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Praticien ID: ${cr.praticien}',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            Text(
+                              cr.dateVisite.toIso8601String().split('T')[0],
+                              style: const TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text('Visiteur ID: ${cr.uuidVisiteur}'),
+                        const SizedBox(height: 8),
+                        const Text('Motif:',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(cr.motif),
+                        const SizedBox(height: 8),
+                        const Text('Bilan:',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(cr.bilan),
                         if (cr.medicaments != null &&
-                            cr.medicaments!.isNotEmpty)
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Médicaments:'),
-                              ...cr.medicaments!.map((medicament) {
-                                return Text(
-                                  '- ${medicament['nom']} (Quantité: ${medicament['quantite']})',
-                                );
-                              }).toList(),
-                            ],
-                          ),
+                            cr.medicaments!.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          const Text('Médicaments:',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          ...cr.medicaments!.map((medicament) => Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 8.0, top: 4.0),
+                              child: Text(
+                                  '- ${medicament['nom']} (Quantité: ${medicament['quantite']})'))),
+                        ],
                       ],
-                    ),
-                    trailing: Text(
-                      'Date: ${cr.dateVisite.toIso8601String().split('T')[0]}', // Affichez uniquement la date
-                      style: const TextStyle(color: Colors.grey),
                     ),
                   ),
                 );

@@ -32,4 +32,29 @@ class CompteRendusApiService {
       throw Exception('Erreur de connexion : $e');
     }
   }
+
+  Future<List<Map<String, dynamic>>> fetchMedicaments() async {
+    try {
+      // Récupérer le token JWT
+      final token = await _authService.getJwtToken();
+      if (token == null || await _authService.isTokenExpired()) {
+        throw Exception('Token invalide ou expiré');
+      }
+
+      // Effectuer la requête avec le token JWT
+      final response = await _dio.get(
+        '$_baseUrl/medicaments/',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((item) => item as Map<String, dynamic>).toList();
+      } else {
+        throw Exception('Erreur lors de la récupération des médicaments');
+      }
+    } catch (e) {
+      throw Exception('Erreur de connexion : $e');
+    }
+  }
 }
