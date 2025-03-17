@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'providers/user_provider.dart';
 import 'settings/settings_controller.dart';
 import 'login/login_view.dart';
 import 'home_view.dart';
@@ -19,6 +20,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        // Ton UserProvider
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+
+        // Ton LoginService / LoginModel
         Provider<LoginService>(create: (_) => LoginService()),
         ChangeNotifierProvider<LoginModel>(
           create: (context) => LoginModel(context.read<LoginService>()),

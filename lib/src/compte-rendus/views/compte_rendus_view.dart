@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/compte_rendus_model.dart';
 import '../services/compte_rendus_service.dart';
+import 'package:provider/provider.dart';
+import '../../providers/user_provider.dart';
 
 class CompteRendusView extends StatefulWidget {
   const CompteRendusView({super.key});
@@ -15,7 +17,17 @@ class _CompteRendusViewState extends State<CompteRendusView> {
   @override
   void initState() {
     super.initState();
-    _compteRendusFuture = CompteRendusService().getAllCompteRendus();
+
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    print(userProvider);
+    print(userProvider.uuid);
+    if (userProvider.uuid != null) {
+      _compteRendusFuture =
+          CompteRendusService().getAllCompteRendus(userProvider.uuid!);
+    } else {
+      _compteRendusFuture =
+          Future.value([]); // Retourne une liste vide si pas d'utilisateur
+    }
   }
 
   @override

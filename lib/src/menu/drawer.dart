@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../auth/auth_service.dart';
 import '../login/login_view.dart';
+import 'package:provider/provider.dart';
+import '../providers/user_provider.dart';
 
 class AppDrawer extends StatefulWidget {
   final bool isPermanent;
@@ -35,14 +37,25 @@ class _AppDrawerState extends State<AppDrawer> {
       _message = '';
     });
 
+    // 🔹 Récupérer userProvider avant le await
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
     try {
       final response = await _authService.getProtectedData('/protected/me');
 
       if (response != null && response.statusCode == 200) {
+        print('Données utilisateur récupérées avec succès');
+        print(response.data);
         setState(() {
           _userData = response.data;
           _isLoading = false;
         });
+
+        // 🔹 Ici, plus besoin d'accéder à context
+        userProvider.setUser(_userData!['id'], _userData!['username']);
+        print('Données utilisateur stockées dans le provider');
+        print(userProvider.uuid);
+        print(userProvider.name);
       } else {
         setState(() {
           _message = 'Échec de la récupération des données utilisateur.';
@@ -60,6 +73,10 @@ class _AppDrawerState extends State<AppDrawer> {
   /// Méthode pour gérer la déconnexion
   Future<void> _logout() async {
     await _authService.deleteJwtToken();
+
+    // Nettoyage des données utilisateur
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    userProvider.clearUser();
 
     if (mounted) {
       Navigator.of(context).pushNamedAndRemoveUntil(

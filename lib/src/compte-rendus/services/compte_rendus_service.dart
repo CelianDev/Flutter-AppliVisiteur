@@ -33,17 +33,17 @@ class CompteRendusService {
     }
   }
 
-  Future<List<CompteRendu>> getAllCompteRendus() async {
+  Future<List<CompteRendu>> getAllCompteRendus(String visiteurUuid) async {
     try {
-      // Récupérer le token JWT
+      // Récupérer le token
       final token = await _authService.getJwtToken();
       if (token == null || await _authService.isTokenExpired()) {
         throw Exception('Token invalide ou expiré');
       }
 
-      // Effectuer la requête avec le token JWT
+      // Appeler le bon endpoint avec l’UUID
       final response = await _dio.get(
-        '$_baseUrl/rapports/',
+        '$_baseUrl/rapports/visiteur/$visiteurUuid',
         options: Options(
           headers: {'Authorization': 'Bearer $token'},
         ),
