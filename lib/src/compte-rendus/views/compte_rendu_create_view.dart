@@ -113,7 +113,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
-      final compteRendu = CompteRendu(
+      final compteRenduSubmission = CompteRenduSubmission(
         dateVisite: dateFormat.parse(dateVisiteController.text),
         bilan: bilanController.text,
         motif: isAutreMotif ? autreMotifController.text : selectedMotif!,
