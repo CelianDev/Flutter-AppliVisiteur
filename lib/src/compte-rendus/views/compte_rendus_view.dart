@@ -17,25 +17,25 @@ class _CompteRendusViewState extends State<CompteRendusView> {
   @override
   void initState() {
     super.initState();
-
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    print(userProvider);
-    print(userProvider.uuid);
-    if (userProvider.uuid != null) {
-      _compteRendusFuture =
-          CompteRendusService().getAllCompteRendus(userProvider.uuid!);
-    } else {
-      _compteRendusFuture =
-          Future.value([]); // Retourne une liste vide si pas d'utilisateur
-    }
+    _compteRendusFuture = userProvider.uuid != null
+        ? CompteRendusService().getAllCompteRendus(userProvider.uuid!)
+        : Future.value([]);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mes comptes rendus')),
+      appBar: AppBar(
+        title: const Text('Mes comptes rendus',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        elevation: 2,
+        backgroundColor: Colors.blueAccent,
+        foregroundColor: Colors.white,
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: FutureBuilder<List<CompteRendu>>(
           future: _compteRendusFuture,
           builder: (context, snapshot) {
@@ -43,9 +43,12 @@ class _CompteRendusViewState extends State<CompteRendusView> {
               return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
               return Center(
-                  child: Text('Erreur: ${snapshot.error.toString()}'));
+                  child: Text('Erreur: ${snapshot.error}',
+                      style: const TextStyle(color: Colors.red)));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text('Aucun compte rendu trouvé'));
+              return const Center(
+                  child: Text('Aucun compte rendu disponible',
+                      style: TextStyle(fontSize: 16)));
             }
 
             final compteRendus = snapshot.data!;
@@ -54,48 +57,22 @@ class _CompteRendusViewState extends State<CompteRendusView> {
               itemBuilder: (context, index) {
                 final cr = compteRendus[index];
                 return Card(
-                  elevation: 3,
-                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  margin: const EdgeInsets.symmetric(vertical: 10),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Praticien ID: ${cr.praticien}',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                            Text(
-                              cr.dateVisite.toIso8601String().split('T')[0],
-                              style: const TextStyle(color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text('Visiteur ID: ${cr.uuidVisiteur}'),
-                        const SizedBox(height: 8),
-                        const Text('Motif:',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text(cr.motif),
-                        const SizedBox(height: 8),
-                        const Text('Bilan:',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text(cr.bilan),
+                        // Section Motif avec la date à droite
+                        _buildMotifSection(cr.motif, cr.dateVisite),
+                        const Divider(height: 10),
+                        _buildDetailSection('Bilan', cr.bilan),
                         if (cr.medicaments != null &&
-                            cr.medicaments!.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          const Text('Médicaments:',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          ...cr.medicaments!.map((medicament) => Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 8.0, top: 4.0),
-                              child: Text(
-                                  '- ${medicament['nom']} (Quantité: ${medicament['quantite']})'))),
-                        ],
+                            cr.medicaments!.isNotEmpty)
+                          _buildMedicamentsSection(cr.medicaments!),
                       ],
                     ),
                   ),
@@ -107,4 +84,67 @@ class _CompteRendusViewState extends State<CompteRendusView> {
       ),
     );
   }
+
+  Widget _buildMotifSection(String motif, DateTime dateVisite) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Motif',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600, color: Colors.blueAccent)),
+                const SizedBox(height: 2),
+                Text(motif),
+              ],
+            ),
+          ),
+          Text(
+            '${dateVisite.day}/${dateVisite.month}/${dateVisite.year}',
+            style: const TextStyle(color: Colors.grey),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailSection(String title, String content) => Padding(
+        padding: const EdgeInsets.only(bottom: 4.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title,
+                style: const TextStyle(
+                    fontWeight: FontWeight.w600, color: Colors.blueAccent)),
+            const SizedBox(height: 4),
+            Text(content),
+          ],
+        ),
+      );
+
+  Widget _buildMedicamentsSection(List<dynamic> medicaments) => Padding(
+        padding: const EdgeInsets.only(top: 4.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Médicaments',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600, color: Colors.blueAccent)),
+            const SizedBox(height: 4),
+            ...medicaments.map((medicament) => ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading:
+                      const Icon(Icons.medication, color: Colors.blueAccent),
+                  title: Text(medicament['nom_commercial'],
+                      style: const TextStyle(fontWeight: FontWeight.w500)),
+                  subtitle: Text(
+                      'Quantité: ${medicament['quantite']} | Présenté: ${medicament['presenter'] ? "Oui" : "Non"}'),
+                )),
+          ],
+        ),
+      );
 }

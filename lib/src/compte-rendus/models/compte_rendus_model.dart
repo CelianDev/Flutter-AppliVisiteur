@@ -25,7 +25,6 @@ class CompteRendu {
       'uuid_visiteur': uuidVisiteur,
       'medicaments': medicaments, // Inclure les médicaments si présents
     };
-    print('Données envoyées: $map');
     return map;
   }
 

@@ -44,8 +44,6 @@ class _AppDrawerState extends State<AppDrawer> {
       final response = await _authService.getProtectedData('/protected/me');
 
       if (response != null && response.statusCode == 200) {
-        print('Données utilisateur récupérées avec succès');
-        print(response.data);
         setState(() {
           _userData = response.data;
           _isLoading = false;
@@ -53,9 +51,6 @@ class _AppDrawerState extends State<AppDrawer> {
 
         // 🔹 Ici, plus besoin d'accéder à context
         userProvider.setUser(_userData!['id'], _userData!['username']);
-        print('Données utilisateur stockées dans le provider');
-        print(userProvider.uuid);
-        print(userProvider.name);
       } else {
         setState(() {
           _message = 'Échec de la récupération des données utilisateur.';
