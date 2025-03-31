@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_stepper/easy_stepper.dart';
 import 'package:intl/intl.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import '../models/praticien_model.dart';
 import '../services/compte_rendus_api_service.dart';
 import '../models/compte_rendus_model.dart';
@@ -97,31 +98,114 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
     }
   }
 
+  // Variable pour suivre si le médicament a été présenté
+  bool isPresentedMedicament = true;
+
   void _addMedicament() {
     if (selectedMedicament != null && quantiteController.text.isNotEmpty) {
       setState(() {
         selectedMedicaments.add({
           'id_medicament': selectedMedicament!['id'],
-          'nom': selectedMedicament!['nom'],
+          'nom': selectedMedicament!['nom_commercial'] ?? selectedMedicament!['nom'],
           'quantite': int.parse(quantiteController.text),
+          'presenter': isPresentedMedicament,
         });
         selectedMedicament = null;
         quantiteController.clear();
+        isPresentedMedicament = true; // Réinitialiser pour le prochain médicament
       });
+    } else {
+      // Afficher un message d'erreur si les champs ne sont pas remplis
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez sélectionner un médicament et indiquer une quantité')),
+      );
     }
   }
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
-      final compteRendu = CompteRendu(
-        dateVisite: dateFormat.parse(dateVisiteController.text),
-        bilan: bilanController.text,
-        motif: isAutreMotif ? autreMotifController.text : selectedMotif!,
-        praticien: selectedPraticien!.id,
-        uuidVisiteur: "test_uuid", // Remplacer par l'UUID réel
-        medicaments: selectedMedicaments,
-      );
-      Navigator.pop(context);
+      if (selectedPraticien == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Veuillez sélectionner un praticien')),
+        );
+        return;
+      }
+      
+      if (selectedMotif == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Veuillez sélectionner un motif')),
+        );
+        return;
+      }
+      
+      if (bilanController.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Veuillez saisir un bilan')),
+        );
+        return;
+      }
+      
+      try {
+        setState(() => _isLoading = true);
+        
+        // Récupérer le token JWT
+        final token = await _authService.getJwtToken();
+        if (token == null || await _authService.isTokenExpired()) {
+          throw Exception('Token invalide ou expiré');
+        }
+        
+        // Décoder le token pour obtenir l'UUID de l'utilisateur
+        final decodedToken = JwtDecoder.decode(token);
+        final uuid = decodedToken['sub']; // 'sub' est généralement l'identifiant de l'utilisateur
+        
+        if (uuid == null) {
+          throw Exception('Impossible de récupérer l\'UUID de l\'utilisateur');
+        }
+        
+        // Préparer les médicaments au format attendu par l'API
+        final formattedMedicaments = selectedMedicaments.map((med) => {
+          'id_medicament': med['id_medicament'],
+          'quantite': med['quantite'],
+          'presenter': med['presenter'],
+        }).toList();
+        
+        final compteRendu = CompteRendu(
+          dateVisite: dateFormat.parse(dateVisiteController.text),
+          bilan: bilanController.text,
+          motif: isAutreMotif ? autreMotifController.text : selectedMotif!,
+          praticien: selectedPraticien!.specialite, // Utiliser la spécialité du praticien au lieu de son ID
+          uuidVisiteur: uuid,
+          medicaments: formattedMedicaments,
+        );
+        
+        // Afficher les données envoyées pour débogage
+        print('Données envoyées au serveur: ${compteRendu.toMap()}');
+        
+        // Envoyer le compte-rendu au serveur
+        await CompteRendusService().addCompteRendu(compteRendu);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Compte-rendu créé avec succès')),
+        );
+        
+        // Rediriger vers la page d'accueil
+        if (!mounted) return;
+        
+        // Utiliser une approche plus simple: naviguer vers la page d'accueil
+        // et utiliser un argument pour indiquer quel onglet afficher
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/', // Route vers la page d'accueil
+          (route) => false, // Supprime toutes les routes précédentes de la pile
+          arguments: 2, // Index de CompteRendusView
+        );
+      } catch (e) {
+        print('Erreur lors de la création du compte-rendu: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur : $e')),
+        );
+      } finally {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -314,17 +398,179 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
   }
 
   Widget _stepMedicament() {
-    return Column(
-      children: [
-        Padding(
-          padding:
-              const EdgeInsets.all(16.0), // Ajoute un padding autour du bouton
-          child: ElevatedButton(
-            onPressed: _submit,
-            child: const Text('Créer le compte rendu'),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Titre de l'étape
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'Ajouter des médicaments',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
           ),
-        ),
-      ],
+          
+          // Sélection du médicament
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: DropdownButtonFormField<Map<String, dynamic>>(
+              decoration: const InputDecoration(
+                labelText: 'Sélectionner un médicament',
+                contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                prefixIcon: Icon(Icons.medication),
+                border: OutlineInputBorder(),
+              ),
+              value: selectedMedicament,
+              items: availableMedicaments.map((medicament) {
+                return DropdownMenuItem(
+                  value: medicament,
+                  child: Text(medicament['nom_commercial'] ?? 'Médicament sans nom'),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedMedicament = value;
+                });
+              },
+              isExpanded: true,
+            ),
+          ),
+          
+          // Saisie de la quantité
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextFormField(
+              controller: quantiteController,
+              decoration: const InputDecoration(
+                labelText: 'Quantité',
+                contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                prefixIcon: Icon(Icons.numbers),
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+          ),
+          
+          // Option pour indiquer si le médicament a été présenté
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                const Text('Médicament présenté au praticien ?', style: TextStyle(fontSize: 16)),
+                const Spacer(),
+                Row(
+                  children: [
+                    Radio<bool>(
+                      value: true,
+                      groupValue: isPresentedMedicament,
+                      onChanged: (value) {
+                        setState(() {
+                          isPresentedMedicament = value!;
+                        });
+                      },
+                    ),
+                    const Text('Oui'),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Radio<bool>(
+                      value: false,
+                      groupValue: isPresentedMedicament,
+                      onChanged: (value) {
+                        setState(() {
+                          isPresentedMedicament = value!;
+                        });
+                      },
+                    ),
+                    const Text('Non'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          
+          // Bouton pour ajouter le médicament à la liste
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ElevatedButton.icon(
+                onPressed: _addMedicament,
+                icon: const Icon(Icons.add),
+                label: const Text('Ajouter ce médicament'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+              ),
+            ),
+          ),
+          
+          // Liste des médicaments sélectionnés
+          if (selectedMedicaments.isNotEmpty) ...[  
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'Médicaments sélectionnés',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: selectedMedicaments.length,
+              itemBuilder: (context, index) {
+                final med = selectedMedicaments[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: ListTile(
+                    leading: const Icon(Icons.medication, color: Colors.blue),
+                    title: Text(med['nom']),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Quantité: ${med['quantite']}'),
+                        Text('Présenté: ${med['presenter'] ? 'Oui' : 'Non'}'),
+                      ],
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        setState(() {
+                          selectedMedicaments.removeAt(index);
+                        });
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+          
+          const SizedBox(height: 20),
+          
+          // Bouton pour soumettre le formulaire
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _submit,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  textStyle: const TextStyle(fontSize: 18),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(color: Colors.white),
+                      )
+                    : const Text('Créer le compte rendu'),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

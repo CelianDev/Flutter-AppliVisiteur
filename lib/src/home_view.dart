@@ -20,6 +20,18 @@ class _HomeViewState extends State<HomeView> {
     const CompteRenduCreateWizard(),
     const CompteRendusView(),
   ];
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Récupérer l'index de l'onglet à afficher depuis les arguments de navigation
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args != null && args is int) {
+      setState(() {
+        _selectedIndex = args.clamp(0, _pages.length - 1);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

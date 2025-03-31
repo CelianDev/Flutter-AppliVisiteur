@@ -30,15 +30,33 @@ class CompteRendu {
   }
 
   factory CompteRendu.fromMap(Map<String, dynamic> map) {
+    // Traitement des médicaments
+    List<Map<String, dynamic>>? medicamentsList;
+    if (map['medicaments'] != null) {
+      medicamentsList = List<Map<String, dynamic>>.from(
+        (map['medicaments'] as List).map((m) {
+          // Vérifier si le médicament est déjà au bon format
+          if (m is Map<String, dynamic>) {
+            return m;
+          }
+          // Sinon, convertir en Map
+          return {
+            'id_medicament': m['id'] ?? m['id_medicament'],
+            'nom': m['nom_commercial'] ?? m['nom'],
+            'quantite': m['quantite'],
+            'presenter': m['presenter'] ?? false,
+          };
+        }),
+      );
+    }
+
     return CompteRendu(
       dateVisite: DateTime.parse(map['date_visite']),
-      praticien: map['praticien'],
+      praticien: map['praticien'] is Map ? map['praticien']['id'] : map['praticien'],
       motif: map['motif'],
       bilan: map['bilan'],
       uuidVisiteur: map['uuid_visiteur'],
-      medicaments: map['medicaments'] != null
-          ? List<Map<String, dynamic>>.from(map['medicaments'])
-          : null,
+      medicaments: medicamentsList,
     );
   }
 }
