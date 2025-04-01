@@ -12,7 +12,18 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView> {
   bool _isLoading = true;
-
+  
+  // Méthode pour naviguer vers un onglet spécifique
+  void _navigateToTab(int index) {
+    // Utiliser Navigator.of(context).pushNamedAndRemoveUntil pour effacer la pile de navigation
+    // et revenir à la page d'accueil avec l'index spécifié
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      '/', // Route vers la page d'accueil
+      (route) => false, // Supprime toutes les routes précédentes de la pile
+      arguments: index, // Index de l'onglet à afficher
+    );
+  }
+  
   @override
   void initState() {
     super.initState();
@@ -30,49 +41,48 @@ class _DashboardViewState extends State<DashboardView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDesktop = MediaQuery.of(context).size.width >= 1024;
-
+    
     return Scaffold(
-      body: _isLoading
-          ? _buildLoadingShimmer(isDesktop)
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // En-tête avec salutation et date
-                  _buildHeader(theme),
-                  const SizedBox(height: 32),
-
-                  // Cartes de statistiques
-                  _buildStatCards(theme, isDesktop),
-                  const SizedBox(height: 32),
-
-                  // Graphique d'activité
-                  _buildActivityChart(theme),
-                  const SizedBox(height: 32),
-
-                  // Modules rapides
-                  Text(
-                    'Accès rapides',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+      body: _isLoading 
+        ? _buildLoadingShimmer(isDesktop)
+        : SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // En-tête avec salutation et date
+                _buildHeader(theme),
+                const SizedBox(height: 32),
+                
+                // Cartes de statistiques
+                _buildStatCards(theme, isDesktop),
+                const SizedBox(height: 32),
+                
+                // Graphique d'activité
+                _buildActivityChart(theme),
+                const SizedBox(height: 32),
+                
+                // Modules rapides
+                Text(
+                  'Accès rapides',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 16),
-                  _buildQuickAccessModules(theme, isDesktop),
-                ],
-              ),
+                ),
+                const SizedBox(height: 16),
+                _buildQuickAccessModules(theme, isDesktop),
+              ],
             ),
+          ),
     );
   }
-
+  
   // Widget d'en-tête avec salutation et date
   Widget _buildHeader(ThemeData theme) {
     final now = DateTime.now();
     final greeting = _getGreeting(now.hour);
-    final dateFormat =
-        '${_getDayName(now.weekday)} ${now.day} ${_getMonthName(now.month)} ${now.year}';
-
+    final dateFormat = '${_getDayName(now.weekday)} ${now.day} ${_getMonthName(now.month)} ${now.year}';
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -94,10 +104,7 @@ class _DashboardViewState extends State<DashboardView> {
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.onSurface.withOpacity(0.7),
                 ),
-              )
-                  .animate()
-                  .fadeIn(duration: 600.ms, delay: 200.ms)
-                  .slideX(begin: -0.2),
+              ).animate().fadeIn(duration: 600.ms, delay: 200.ms).slideX(begin: -0.2),
             ],
           ),
         ),
@@ -132,7 +139,7 @@ class _DashboardViewState extends State<DashboardView> {
       ],
     );
   }
-
+  
   // Cartes de statistiques
   Widget _buildStatCards(ThemeData theme, bool isDesktop) {
     final statCards = [
@@ -169,7 +176,7 @@ class _DashboardViewState extends State<DashboardView> {
         'isPositive': false,
       },
     ];
-
+    
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -182,17 +189,39 @@ class _DashboardViewState extends State<DashboardView> {
       itemCount: statCards.length,
       itemBuilder: (context, index) {
         final card = statCards[index];
-        return Card(
-          elevation: 0,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          color: theme.colorScheme.surface,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+        return InkWell(
+          onTap: () {
+            // Rediriger vers l'onglet correspondant
+            switch(index) {
+              case 0: // Comptes rendus
+                // Naviguer vers l'onglet Comptes Rendus (index 2)
+                _navigateToTab(2);
+                break;
+              case 1: // Visites prévues
+                // Naviguer vers l'onglet Nouveau compte rendu (index 1)
+                _navigateToTab(1);
+                break;
+              case 2: // Médicaments
+                // Pour l'instant, rediriger vers l'onglet Comptes Rendus
+                _navigateToTab(2);
+                break;
+              case 3: // Praticiens
+                // Pour l'instant, rediriger vers l'onglet Comptes Rendus
+                _navigateToTab(2);
+                break;
+            }
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            color: theme.colorScheme.surface,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -232,9 +261,7 @@ class _DashboardViewState extends State<DashboardView> {
                         card['isPositive'] as bool
                             ? Icons.arrow_upward
                             : Icons.arrow_downward,
-                        color: card['isPositive'] as bool
-                            ? Colors.green
-                            : Colors.red,
+                        color: card['isPositive'] as bool ? Colors.green : Colors.red,
                         size: 14,
                       ),
                     const SizedBox(width: 4),
@@ -243,9 +270,7 @@ class _DashboardViewState extends State<DashboardView> {
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: card['isPositive'] == null
                             ? theme.colorScheme.onSurface.withOpacity(0.6)
-                            : (card['isPositive'] as bool
-                                ? Colors.green
-                                : Colors.red),
+                            : (card['isPositive'] as bool ? Colors.green : Colors.red),
                       ),
                     ),
                   ],
@@ -253,60 +278,18 @@ class _DashboardViewState extends State<DashboardView> {
               ],
             ),
           ),
-        )
-            .animate()
-            .fadeIn(duration: 600.ms, delay: (100 * index).ms)
-            .scale(begin: const Offset(0.9, 0.9), end: const Offset(1.0, 1.0));
+        ).animate().fadeIn(duration: 600.ms, delay: (100 * index).ms).scale(begin: const Offset(0.9, 0.9), end: const Offset(1.0, 1.0));
       },
     );
   }
-
+  
   // Graphique d'activité simplifié
   Widget _buildActivityChart(ThemeData theme) {
     // Données pour les deux séries
-    final List<double> seriesCompteRendus = [
-      35,
-      42,
-      38,
-      50,
-      45,
-      60,
-      65,
-      70,
-      72,
-      78,
-      85,
-      82
-    ];
-    final List<double> seriesVisites = [
-      20,
-      25,
-      22,
-      30,
-      28,
-      35,
-      40,
-      45,
-      48,
-      52,
-      60,
-      58
-    ];
-    const List<String> months = [
-      'Jan',
-      'Fév',
-      'Mar',
-      'Avr',
-      'Mai',
-      'Juin',
-      'Juil',
-      'Août',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Déc'
-    ];
-
+    final List<double> seriesCompteRendus = [35, 42, 38, 50, 45, 60, 65, 70, 72, 78, 85, 82];
+    final List<double> seriesVisites = [20, 25, 22, 30, 28, 35, 40, 45, 48, 52, 60, 58];
+    const List<String> months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+    
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -326,8 +309,7 @@ class _DashboardViewState extends State<DashboardView> {
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
@@ -390,7 +372,7 @@ class _DashboardViewState extends State<DashboardView> {
       ),
     ).animate().fadeIn(duration: 800.ms, delay: 400.ms);
   }
-
+  
   // Légende du graphique
   Widget _buildChartLegend(Color color, String label) {
     return Row(
@@ -408,7 +390,9 @@ class _DashboardViewState extends State<DashboardView> {
       ],
     );
   }
+  
 
+  
   // Modules d'accès rapide
   Widget _buildQuickAccessModules(ThemeData theme, bool isDesktop) {
     final modules = [
@@ -450,7 +434,7 @@ class _DashboardViewState extends State<DashboardView> {
         'route': null,
       },
     ];
-
+    
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -465,8 +449,7 @@ class _DashboardViewState extends State<DashboardView> {
         final module = modules[index];
         return Card(
           elevation: 0,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           color: theme.colorScheme.surface,
           child: InkWell(
             borderRadius: BorderRadius.circular(16),
@@ -474,16 +457,13 @@ class _DashboardViewState extends State<DashboardView> {
               final route = module['route'];
               if (route != null) {
                 if (module['args'] != null) {
-                  Navigator.pushNamed(context, route as String,
-                      arguments: module['args']);
+                  Navigator.pushNamed(context, route as String, arguments: module['args']);
                 } else {
                   Navigator.pushNamed(context, route as String);
                 }
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content:
-                          Text('${module['title']} : Fonctionnalité à venir')),
+                  SnackBar(content: Text('${module['title']} : Fonctionnalité à venir')),
                 );
               }
             },
@@ -513,14 +493,11 @@ class _DashboardViewState extends State<DashboardView> {
               ],
             ),
           ),
-        )
-            .animate()
-            .fadeIn(duration: 600.ms, delay: (100 * index).ms)
-            .scale(begin: const Offset(0.9, 0.9), end: const Offset(1.0, 1.0));
+        ).animate().fadeIn(duration: 600.ms, delay: (100 * index).ms).scale(begin: const Offset(0.9, 0.9), end: const Offset(1.0, 1.0));
       },
     );
   }
-
+  
   // Widget de chargement avec shimmer
   Widget _buildLoadingShimmer(bool isDesktop) {
     return Padding(
@@ -568,7 +545,7 @@ class _DashboardViewState extends State<DashboardView> {
               ],
             ),
             const SizedBox(height: 32),
-
+            
             // Cartes de statistiques
             GridView.builder(
               shrinkWrap: true,
@@ -590,7 +567,7 @@ class _DashboardViewState extends State<DashboardView> {
               },
             ),
             const SizedBox(height: 32),
-
+            
             // Graphique
             Container(
               height: 250,
@@ -600,7 +577,7 @@ class _DashboardViewState extends State<DashboardView> {
               ),
             ),
             const SizedBox(height: 32),
-
+            
             // Titre modules
             Container(
               width: 150,
@@ -611,7 +588,7 @@ class _DashboardViewState extends State<DashboardView> {
               ),
             ),
             const SizedBox(height: 16),
-
+            
             // Modules
             GridView.builder(
               shrinkWrap: true,
@@ -637,46 +614,25 @@ class _DashboardViewState extends State<DashboardView> {
       ),
     );
   }
-
+  
   // Fonctions utilitaires
   String _getGreeting(int hour) {
     if (hour < 12) {
-      return 'Bonjour !';
+      return 'Bonjour !';  
     } else if (hour < 18) {
-      return 'Bon après-midi !';
+      return 'Bon après-midi !';  
     } else {
-      return 'Bonsoir !';
+      return 'Bonsoir !';  
     }
   }
-
+  
   String _getDayName(int weekday) {
-    const days = [
-      'Lundi',
-      'Mardi',
-      'Mercredi',
-      'Jeudi',
-      'Vendredi',
-      'Samedi',
-      'Dimanche'
-    ];
+    const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
     return days[weekday - 1];
   }
-
+  
   String _getMonthName(int month) {
-    const months = [
-      'janvier',
-      'février',
-      'mars',
-      'avril',
-      'mai',
-      'juin',
-      'juillet',
-      'août',
-      'septembre',
-      'octobre',
-      'novembre',
-      'décembre'
-    ];
+    const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
     return months[month - 1];
   }
 }
@@ -688,7 +644,7 @@ class SimpleChartPainter extends CustomPainter {
   final Color primaryColor;
   final Color secondaryColor;
   final Color gridColor;
-
+  
   SimpleChartPainter({
     required this.seriesCompteRendus,
     required this.seriesVisites,
@@ -696,51 +652,50 @@ class SimpleChartPainter extends CustomPainter {
     required this.secondaryColor,
     required this.gridColor,
   });
-
+  
   @override
   void paint(Canvas canvas, Size size) {
     final double maxValue = 100; // Valeur maximale pour l'échelle Y
     final double width = size.width;
     final double height = size.height;
     final double horizontalStep = width / (seriesCompteRendus.length - 1);
-
+    
     // Dessiner les lignes horizontales de la grille
     final gridPaint = Paint()
       ..color = gridColor
       ..strokeWidth = 1
       ..style = PaintingStyle.stroke;
-
+    
     for (int i = 1; i <= 5; i++) {
       final y = height - (height * (i * 20) / maxValue);
       canvas.drawLine(Offset(0, y), Offset(width, y), gridPaint);
     }
-
+    
     // Dessiner la première série (Comptes rendus)
     _drawSeries(
-      canvas,
-      size,
-      seriesCompteRendus,
-      primaryColor,
+      canvas, 
+      size, 
+      seriesCompteRendus, 
+      primaryColor, 
       maxValue,
       horizontalStep,
     );
-
+    
     // Dessiner la deuxième série (Visites)
     _drawSeries(
-      canvas,
-      size,
-      seriesVisites,
-      secondaryColor,
+      canvas, 
+      size, 
+      seriesVisites, 
+      secondaryColor, 
       maxValue,
       horizontalStep,
     );
   }
-
-  void _drawSeries(Canvas canvas, Size size, List<double> data, Color color,
-      double maxValue, double horizontalStep) {
+  
+  void _drawSeries(Canvas canvas, Size size, List<double> data, Color color, double maxValue, double horizontalStep) {
     final path = Path();
     final fillPath = Path();
-
+    
     // Configurer les pinceaux
     final linePaint = Paint()
       ..color = color
@@ -748,16 +703,16 @@ class SimpleChartPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
-
+    
     final fillPaint = Paint()
       ..color = color.withOpacity(0.1)
       ..style = PaintingStyle.fill;
-
+    
     // Créer le chemin pour la ligne
     for (int i = 0; i < data.length; i++) {
       final x = i * horizontalStep;
       final y = size.height - (size.height * data[i] / maxValue);
-
+      
       if (i == 0) {
         path.moveTo(x, y);
         fillPath.moveTo(x, y);
@@ -765,36 +720,36 @@ class SimpleChartPainter extends CustomPainter {
         // Utiliser une courbe de Bézier pour lisser la ligne
         final prevX = (i - 1) * horizontalStep;
         final prevY = size.height - (size.height * data[i - 1] / maxValue);
-
+        
         final controlX1 = prevX + (x - prevX) / 2;
         final controlX2 = prevX + (x - prevX) / 2;
-
+        
         path.cubicTo(controlX1, prevY, controlX2, y, x, y);
         fillPath.cubicTo(controlX1, prevY, controlX2, y, x, y);
       }
     }
-
+    
     // Compléter le chemin de remplissage
     fillPath.lineTo(size.width, size.height);
     fillPath.lineTo(0, size.height);
     fillPath.close();
-
+    
     // Dessiner le remplissage et la ligne
     canvas.drawPath(fillPath, fillPaint);
     canvas.drawPath(path, linePaint);
-
+    
     // Dessiner les points
     final dotPaint = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
-
+    
     for (int i = 0; i < data.length; i++) {
       final x = i * horizontalStep;
       final y = size.height - (size.height * data[i] / maxValue);
       canvas.drawCircle(Offset(x, y), 3, dotPaint);
     }
   }
-
+  
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

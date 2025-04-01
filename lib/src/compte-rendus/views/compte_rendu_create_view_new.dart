@@ -14,8 +14,7 @@ class CompteRenduCreateWizard extends StatefulWidget {
   const CompteRenduCreateWizard({super.key});
 
   @override
-  State<CompteRenduCreateWizard> createState() =>
-      _CompteRenduCreateWizardState();
+  State<CompteRenduCreateWizard> createState() => _CompteRenduCreateWizardState();
 }
 
 class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
@@ -68,9 +67,8 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
         // Nous n'utilisons pas decodedToken pour l'instant
         // final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
         // final String userId = decodedToken['sub'];
-
-        final fetchedPraticiens =
-            await CompteRendusApiService().fetchPraticiens();
+        
+        final fetchedPraticiens = await CompteRendusApiService().fetchPraticiens();
         if (mounted) {
           setState(() {
             praticiens = fetchedPraticiens;
@@ -81,8 +79,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Erreur lors du chargement des praticiens : $e')),
+          SnackBar(content: Text('Erreur lors du chargement des praticiens : $e')),
         );
         setState(() => _isLoading = false);
       }
@@ -91,8 +88,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
 
   Future<void> _fetchMedicaments() async {
     try {
-      final fetchedMedicaments =
-          await CompteRendusApiService().fetchMedicaments();
+      final fetchedMedicaments = await CompteRendusApiService().fetchMedicaments();
       if (mounted) {
         setState(() {
           availableMedicaments = fetchedMedicaments;
@@ -101,8 +97,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Erreur lors du chargement des médicaments : $e')),
+          SnackBar(content: Text('Erreur lors du chargement des médicaments : $e')),
         );
       }
     }
@@ -139,8 +134,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
       setState(() {
         selectedMedicaments.add({
           'id_medicament': selectedMedicament!['id'],
-          'nom': selectedMedicament!['nom_commercial'] ??
-              selectedMedicament!['nom'],
+          'nom': selectedMedicament!['nom_commercial'] ?? selectedMedicament!['nom'],
           'quantite': int.parse(quantiteController.text),
           'presenter': isPresentedMedicament,
         });
@@ -150,9 +144,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                'Veuillez sélectionner un médicament et indiquer une quantité')),
+        const SnackBar(content: Text('Veuillez sélectionner un médicament et indiquer une quantité')),
       );
     }
   }
@@ -165,14 +157,14 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
         );
         return;
       }
-
+      
       if (selectedMotif == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Veuillez sélectionner un motif')),
         );
         return;
       }
-
+      
       setState(() => _isLoading = true);
       try {
         // Récupérer le token JWT
@@ -180,16 +172,15 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
         if (token == null) {
           throw Exception('Token invalide ou expiré');
         }
-
+        
         // Décoder le token pour obtenir l'UUID de l'utilisateur
         final decodedToken = JwtDecoder.decode(token);
-        final uuid = decodedToken[
-            'sub']; // 'sub' est généralement l'identifiant de l'utilisateur
-
+        final uuid = decodedToken['sub']; // 'sub' est généralement l'identifiant de l'utilisateur
+        
         if (uuid == null) {
           throw Exception('Impossible de récupérer l\'UUID de l\'utilisateur');
         }
-
+        
         final compteRendu = CompteRendu(
           dateVisite: dateFormat.parse(dateVisiteController.text),
           bilan: bilanController.text,
@@ -198,30 +189,28 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
           uuidVisiteur: uuid,
           medicaments: selectedMedicaments,
         );
-
+        
         // Envoyer le compte-rendu au serveur
         await CompteRendusService().addCompteRendu(compteRendu);
-
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Compte-rendu créé avec succès')),
         );
-
+        
         // Rediriger vers la page d'accueil
         if (!mounted) return;
         Navigator.pop(context);
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content:
-                    Text('Erreur lors de la création du compte rendu : $e')),
+            SnackBar(content: Text('Erreur lors de la création du compte rendu : $e')),
           );
           setState(() => _isLoading = false);
         }
       }
     }
   }
-
+  
   // Widget pour afficher le contenu de l'étape en cours
   Widget _buildStepContent() {
     switch (activeStep) {
@@ -239,7 +228,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
         return Container();
     }
   }
-
+  
   // Étape 1: Date de visite
   Widget _stepDateVisite() {
     final theme = Theme.of(context);
@@ -254,10 +243,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
               fontWeight: FontWeight.w600,
               color: theme.primaryColor,
             ),
-          )
-              .animate()
-              .fadeIn(duration: const Duration(milliseconds: 300))
-              .slideX(),
+          ).animate().fadeIn(duration: const Duration(milliseconds: 300)).slideX(),
           const SizedBox(height: 8),
           Text(
             'Sélectionnez la date à laquelle vous avez effectué la visite',
@@ -265,10 +251,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
               fontSize: 16,
               color: Colors.grey[600],
             ),
-          )
-              .animate()
-              .fadeIn(duration: const Duration(milliseconds: 400))
-              .slideX(),
+          ).animate().fadeIn(duration: const Duration(milliseconds: 400)).slideX(),
           const SizedBox(height: 24),
           Container(
             decoration: BoxDecoration(
@@ -289,16 +272,14 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
               decoration: InputDecoration(
                 labelText: 'Date de visite',
                 hintText: 'JJ/MM/AAAA',
-                prefixIcon:
-                    Icon(Icons.calendar_today, color: theme.primaryColor),
+                prefixIcon: Icon(Icons.calendar_today, color: theme.primaryColor),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -308,10 +289,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
               },
               onTap: () => _selectDate(context),
             ),
-          )
-              .animate()
-              .fadeIn(duration: const Duration(milliseconds: 500))
-              .scale(),
+          ).animate().fadeIn(duration: const Duration(milliseconds: 500)).scale(),
           const SizedBox(height: 16),
           Text(
             'Note: La date ne peut pas être dans le futur.',
@@ -340,10 +318,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
               fontWeight: FontWeight.w600,
               color: theme.primaryColor,
             ),
-          )
-              .animate()
-              .fadeIn(duration: const Duration(milliseconds: 300))
-              .slideX(),
+          ).animate().fadeIn(duration: const Duration(milliseconds: 300)).slideX(),
           const SizedBox(height: 8),
           Text(
             'Choisissez le praticien que vous avez visité',
@@ -351,10 +326,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
               fontSize: 16,
               color: Colors.grey[600],
             ),
-          )
-              .animate()
-              .fadeIn(duration: const Duration(milliseconds: 400))
-              .slideX(),
+          ).animate().fadeIn(duration: const Duration(milliseconds: 400)).slideX(),
           const SizedBox(height: 24),
           if (praticiens.isEmpty && !_isLoading)
             Center(
@@ -406,8 +378,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                   ),
                   filled: true,
                   fillColor: Colors.white,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
                 items: praticiens.map((praticien) {
                   return DropdownMenuItem<Praticien>(
@@ -433,10 +404,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                 icon: Icon(Icons.arrow_drop_down, color: theme.primaryColor),
                 dropdownColor: Colors.white,
               ),
-            )
-                .animate()
-                .fadeIn(duration: const Duration(milliseconds: 500))
-                .scale(),
+            ).animate().fadeIn(duration: const Duration(milliseconds: 500)).scale(),
         ],
       ),
     );
@@ -456,10 +424,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
               fontWeight: FontWeight.w600,
               color: theme.primaryColor,
             ),
-          )
-              .animate()
-              .fadeIn(duration: const Duration(milliseconds: 300))
-              .slideX(),
+          ).animate().fadeIn(duration: const Duration(milliseconds: 300)).slideX(),
           const SizedBox(height: 8),
           Text(
             'Indiquez la raison de votre visite',
@@ -467,10 +432,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
               fontSize: 16,
               color: Colors.grey[600],
             ),
-          )
-              .animate()
-              .fadeIn(duration: const Duration(milliseconds: 400))
-              .slideX(),
+          ).animate().fadeIn(duration: const Duration(milliseconds: 400)).slideX(),
           const SizedBox(height: 24),
           Container(
             decoration: BoxDecoration(
@@ -496,8 +458,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                 ),
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               items: motifs.map((motif) {
                 return DropdownMenuItem<String>(
@@ -521,11 +482,8 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
               icon: Icon(Icons.arrow_drop_down, color: theme.primaryColor),
               dropdownColor: Colors.white,
             ),
-          )
-              .animate()
-              .fadeIn(duration: const Duration(milliseconds: 500))
-              .scale(),
-          if (isAutreMotif) ...[
+          ).animate().fadeIn(duration: const Duration(milliseconds: 500)).scale(),
+          if (isAutreMotif) ...[  
             const SizedBox(height: 16),
             Container(
               decoration: BoxDecoration(
@@ -551,8 +509,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                   ),
                   filled: true,
                   fillColor: Colors.white,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
                 validator: (value) {
                   if (isAutreMotif && (value == null || value.isEmpty)) {
@@ -561,10 +518,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                   return null;
                 },
               ),
-            )
-                .animate()
-                .fadeIn(duration: const Duration(milliseconds: 600))
-                .scale(),
+            ).animate().fadeIn(duration: const Duration(milliseconds: 600)).scale(),
           ],
         ],
       ),
@@ -585,10 +539,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
               fontWeight: FontWeight.w600,
               color: theme.primaryColor,
             ),
-          )
-              .animate()
-              .fadeIn(duration: const Duration(milliseconds: 300))
-              .slideX(),
+          ).animate().fadeIn(duration: const Duration(milliseconds: 300)).slideX(),
           const SizedBox(height: 8),
           Text(
             'Décrivez le déroulement et les résultats de votre visite',
@@ -596,10 +547,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
               fontSize: 16,
               color: Colors.grey[600],
             ),
-          )
-              .animate()
-              .fadeIn(duration: const Duration(milliseconds: 400))
-              .slideX(),
+          ).animate().fadeIn(duration: const Duration(milliseconds: 400)).slideX(),
           const SizedBox(height: 24),
           Container(
             decoration: BoxDecoration(
@@ -631,8 +579,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                 ),
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -643,10 +590,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                 return null;
               },
             ),
-          )
-              .animate()
-              .fadeIn(duration: const Duration(milliseconds: 500))
-              .scale(),
+          ).animate().fadeIn(duration: const Duration(milliseconds: 500)).scale(),
           const SizedBox(height: 16),
           Text(
             'Conseil: Soyez précis et concis dans votre description pour faciliter le suivi.',
@@ -675,10 +619,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
               fontWeight: FontWeight.w600,
               color: theme.primaryColor,
             ),
-          )
-              .animate()
-              .fadeIn(duration: const Duration(milliseconds: 300))
-              .slideX(),
+          ).animate().fadeIn(duration: const Duration(milliseconds: 300)).slideX(),
           const SizedBox(height: 8),
           Text(
             'Indiquez les médicaments que vous avez présentés lors de la visite',
@@ -686,10 +627,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
               fontSize: 16,
               color: Colors.grey[600],
             ),
-          )
-              .animate()
-              .fadeIn(duration: const Duration(milliseconds: 400))
-              .slideX(),
+          ).animate().fadeIn(duration: const Duration(milliseconds: 400)).slideX(),
           const SizedBox(height: 24),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -713,24 +651,20 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                     value: selectedMedicament,
                     decoration: InputDecoration(
                       labelText: 'Médicament',
-                      prefixIcon:
-                          Icon(Icons.medication, color: theme.primaryColor),
+                      prefixIcon: Icon(Icons.medication, color: theme.primaryColor),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
                       fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 16),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     ),
                     items: availableMedicaments.map((medicament) {
-                      final nomMedicament =
-                          medicament['nom_commercial'] ?? medicament['nom'];
+                      final nomMedicament = medicament['nom_commercial'] ?? medicament['nom'];
                       return DropdownMenuItem<Map<String, dynamic>>(
                         value: medicament,
-                        child:
-                            Text(nomMedicament, style: GoogleFonts.poppins()),
+                        child: Text(nomMedicament, style: GoogleFonts.poppins()),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -739,8 +673,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                       });
                     },
                     isExpanded: true,
-                    icon:
-                        Icon(Icons.arrow_drop_down, color: theme.primaryColor),
+                    icon: Icon(Icons.arrow_drop_down, color: theme.primaryColor),
                     dropdownColor: Colors.white,
                   ),
                 ),
@@ -772,17 +705,13 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                       ),
                       filled: true,
                       fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 16),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     ),
                   ),
                 ),
               ),
             ],
-          )
-              .animate()
-              .fadeIn(duration: const Duration(milliseconds: 500))
-              .scale(),
+          ).animate().fadeIn(duration: const Duration(milliseconds: 500)).scale(),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -830,8 +759,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
             label: const Text('Ajouter ce médicament'),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
           ).animate().fadeIn(duration: const Duration(milliseconds: 800)),
           const SizedBox(height: 24),
@@ -862,19 +790,15 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                 ...selectedMedicaments.map((med) {
                   return Card(
                     margin: const EdgeInsets.only(bottom: 8),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 2,
                     child: ListTile(
                       leading: Icon(
                         med['presenter'] ? Icons.check_circle : Icons.cancel,
                         color: med['presenter'] ? Colors.green : Colors.red,
                       ),
-                      title: Text(med['nom'],
-                          style:
-                              GoogleFonts.poppins(fontWeight: FontWeight.w500)),
-                      subtitle: Text('Quantité: ${med['quantite']}',
-                          style: GoogleFonts.poppins()),
+                      title: Text(med['nom'], style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                      subtitle: Text('Quantité: ${med['quantite']}', style: GoogleFonts.poppins()),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () {
@@ -937,12 +861,10 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                         stepRadius: 28,
                         finishedStepBorderColor: Theme.of(context).primaryColor,
                         finishedStepTextColor: Theme.of(context).primaryColor,
-                        finishedStepBackgroundColor:
-                            Theme.of(context).primaryColor,
+                        finishedStepBackgroundColor: Theme.of(context).primaryColor,
                         activeStepIconColor: Colors.white,
                         activeStepBorderColor: Theme.of(context).primaryColor,
-                        activeStepBackgroundColor:
-                            Theme.of(context).primaryColor,
+                        activeStepBackgroundColor: Theme.of(context).primaryColor,
                         activeStepTextColor: Theme.of(context).primaryColor,
                         unreachedStepBackgroundColor: Colors.white,
                         unreachedStepBorderColor: Colors.grey.shade300,
@@ -952,8 +874,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                           EasyStep(
                             customStep: Icon(
                               Icons.calendar_today,
-                              color:
-                                  activeStep >= 0 ? Colors.white : Colors.grey,
+                              color: activeStep >= 0 ? Colors.white : Colors.grey,
                             ),
                             customTitle: Text(
                               'Date',
@@ -967,8 +888,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                           EasyStep(
                             customStep: Icon(
                               Icons.person,
-                              color:
-                                  activeStep >= 1 ? Colors.white : Colors.grey,
+                              color: activeStep >= 1 ? Colors.white : Colors.grey,
                             ),
                             customTitle: Text(
                               'Praticien',
@@ -982,8 +902,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                           EasyStep(
                             customStep: Icon(
                               Icons.subject,
-                              color:
-                                  activeStep >= 2 ? Colors.white : Colors.grey,
+                              color: activeStep >= 2 ? Colors.white : Colors.grey,
                             ),
                             customTitle: Text(
                               'Motif',
@@ -997,8 +916,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                           EasyStep(
                             customStep: Icon(
                               Icons.description,
-                              color:
-                                  activeStep >= 3 ? Colors.white : Colors.grey,
+                              color: activeStep >= 3 ? Colors.white : Colors.grey,
                             ),
                             customTitle: Text(
                               'Bilan',
@@ -1012,8 +930,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                           EasyStep(
                             customStep: Icon(
                               Icons.medication,
-                              color:
-                                  activeStep >= 4 ? Colors.white : Colors.grey,
+                              color: activeStep >= 4 ? Colors.white : Colors.grey,
                             ),
                             customTitle: Text(
                               'Médicaments',
@@ -1025,15 +942,13 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                             ),
                           ),
                         ],
-                        onStepReached: (index) =>
-                            setState(() => activeStep = index),
+                        onStepReached: (index) => setState(() => activeStep = index),
                       ),
                     ),
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: _buildStepContent().animate().fadeIn(
-                            duration: const Duration(milliseconds: 300)),
+                        child: _buildStepContent().animate().fadeIn(duration: const Duration(milliseconds: 300)),
                       ),
                     ),
                     Padding(
@@ -1053,10 +968,8 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.grey.shade200,
                                 foregroundColor: Colors.black87,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8)),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
                             )
                           else
@@ -1073,10 +986,8 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                                   icon: const Icon(Icons.arrow_forward),
                                   label: const Text('Suivant'),
                                   style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 12),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                   ),
                                 )
                               : ElevatedButton.icon(
@@ -1086,8 +997,7 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                                           width: 24,
                                           height: 24,
                                           padding: const EdgeInsets.all(2.0),
-                                          child:
-                                              const CircularProgressIndicator(
+                                          child: const CircularProgressIndicator(
                                             color: Colors.white,
                                             strokeWidth: 3,
                                           ),
@@ -1095,10 +1005,8 @@ class _CompteRenduCreateWizardState extends State<CompteRenduCreateWizard> {
                                       : const Icon(Icons.check),
                                   label: const Text('Terminer'),
                                   style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 12),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                   ),
                                 ),
                         ],
