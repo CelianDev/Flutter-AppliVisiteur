@@ -1,13 +1,11 @@
 name: flutter_visiteur
 description: "A new Flutter project."
-
 # Prevent accidental publishing to pub.dev.
 publish_to: "none"
-
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.5.3
+  sdk: ">=3.3.0 <4.0.0"
 
 dependencies:
   dio: ^5.7.0
@@ -17,22 +15,25 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   provider: ^6.1.2
-  flutter_secure_storage:
-  jwt_decoder:
+  flutter_secure_storage: ^8.0.0
+  jwt_decoder: ^2.0.1
+  easy_stepper:
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
   flutter_lints: ^4.0.0
 
 flutter:
+  fonts:
+    - family: Roboto_Condensed
+      fonts:
+        - asset: assets/fonts/Roboto_Condensed-Regular.ttf
+        - asset: assets/fonts/Roboto_Condensed-Bold.ttf
+          weight: 700
   uses-material-design: true
-
-  # Enable generation of localized Strings from arb files.
   generate: true
-
   assets:
-    # Add assets from the images directory to the application.
     - assets/images/
     - .env

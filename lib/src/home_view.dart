@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dashboard/dashboard_view.dart';
-import 'compte-rendus/compte_rendus_view.dart';
+import 'compte-rendus/views/compte_rendu_create_view.dart';
+import 'compte-rendus/views/compte_rendus_view.dart';
 import 'menu/drawer.dart';
 
 class HomeView extends StatefulWidget {
   static const routeName = '/';
-
   const HomeView({super.key});
 
   @override
@@ -17,17 +17,29 @@ class _HomeViewState extends State<HomeView> {
 
   final List<Widget> _pages = [
     const DashboardView(),
+    const CompteRenduCreateWizard(),
     const CompteRendusView(),
   ];
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Récupérer l'index de l'onglet à afficher depuis les arguments de navigation
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args != null && args is int) {
+      setState(() {
+        _selectedIndex = args.clamp(0, _pages.length - 1);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     bool isDesktop = MediaQuery.of(context).size.width >= 1024;
-
     return Scaffold(
+      backgroundColor: Colors.white, // Arrière-plan blanc par défaut
       body: Row(
         children: [
-          // Utilisation d'AppDrawer pour le menu fixe
           if (isDesktop)
             SizedBox(
               width: 250,
@@ -35,14 +47,15 @@ class _HomeViewState extends State<HomeView> {
                 isPermanent: true,
                 onDestinationSelected: (index) {
                   setState(() {
-                    _selectedIndex = index;
+                    _selectedIndex = index.clamp(0, _pages.length - 1);
                   });
                 },
               ),
             ),
-          // Contenu principal
           Expanded(
-            child: _pages[_selectedIndex],
+            child: _pages.length > _selectedIndex
+                ? _pages[_selectedIndex]
+                : Container(),
           ),
         ],
       ),
@@ -52,7 +65,7 @@ class _HomeViewState extends State<HomeView> {
               isPermanent: false,
               onDestinationSelected: (index) {
                 setState(() {
-                  _selectedIndex = index;
+                  _selectedIndex = index.clamp(0, _pages.length - 1);
                 });
               },
             ),

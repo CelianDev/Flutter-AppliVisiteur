@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class LoginService {
   final Dio _dio = Dio();
-  final _storage = FlutterSecureStorage();
+  final _storage = const FlutterSecureStorage();
 
   /// Clé utilisée pour stocker le JWT dans le stockage sécurisé
   static const String _jwtKey = 'jwt_token';
@@ -26,10 +26,10 @@ class LoginService {
         },
       );
 
-      if (response.statusCode == 200 && response.data.containsKey('access_token')) {
-
+      if (response.statusCode == 200 &&
+          response.data.containsKey('access_token')) {
         // Extraire le JWT du corps de la réponse
-         String jwtToken = response.data['access_token'];
+        String jwtToken = response.data['access_token'];
         // Stocker le JWT de manière sécurisée
         await _storage.write(key: _jwtKey, value: jwtToken);
 
@@ -38,9 +38,8 @@ class LoginService {
           // 'access_token': response.data['access_token'],
           // 'token_type': response.data['token_type'],
         };
-
       } else {
-        return {  
+        return {
           'success': false,
           'message': 'Invalid credentials or unexpected response',
         };
