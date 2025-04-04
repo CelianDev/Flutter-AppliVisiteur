@@ -39,7 +39,8 @@ class CompteRendusService {
             'Authorization': 'Bearer $token',
             'Content-Type': 'application/json',
           },
-          validateStatus: (status) => true, // Accepter tous les codes de statut pour débogage
+          validateStatus: (status) =>
+              true, // Accepter tous les codes de statut pour débogage
         ),
       );
 
@@ -47,7 +48,8 @@ class CompteRendusService {
       print('Réponse du serveur: ${response.data}');
 
       if (response.statusCode != 201 && response.statusCode != 200) {
-        throw Exception('Erreur lors de l\'ajout du compte-rendu: ${response.statusCode} - ${response.data}');
+        throw Exception(
+            'Erreur lors de l\'ajout du compte-rendu: ${response.statusCode} - ${response.data}');
       }
     } catch (e) {
       print('Exception détaillée: $e');
@@ -57,7 +59,7 @@ class CompteRendusService {
         print('Message d\'erreur: ${dioError.message}');
         print('Code de statut: ${dioError.response?.statusCode}');
         print('Données de réponse: ${dioError.response?.data}');
-        
+
         if (dioError.response?.statusCode == 422) {
           throw Exception('Données invalides: ${dioError.response?.data}');
         }
@@ -66,7 +68,7 @@ class CompteRendusService {
     }
   }
 
-  Future<List<CompteRendu>> getAllCompteRendus() async {
+  Future<List<CompteRenduList>> getAllCompteRendus() async {
     try {
       // Récupérer le token JWT
       final token = await _authService.getJwtToken();
@@ -76,8 +78,9 @@ class CompteRendusService {
 
       // Décoder le token pour obtenir l'UUID de l'utilisateur
       final decodedToken = JwtDecoder.decode(token);
-      final uuid = decodedToken['sub']; // 'sub' est généralement l'identifiant de l'utilisateur
-      
+      final uuid = decodedToken[
+          'sub']; // 'sub' est généralement l'identifiant de l'utilisateur
+
       if (uuid == null) {
         throw Exception('Impossible de récupérer l\'UUID de l\'utilisateur');
       }
@@ -95,9 +98,10 @@ class CompteRendusService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
-        return data.map((item) => CompteRendu.fromMap(item)).toList();
+        return data.map((item) => CompteRenduList.fromMap(item)).toList();
       } else {
-        throw Exception('Erreur lors de la récupération des comptes-rendus: ${response.statusCode}');
+        throw Exception(
+            'Erreur lors de la récupération des comptes-rendus: ${response.statusCode}');
       }
     } catch (e) {
       print('Exception lors de la récupération des comptes-rendus: $e');

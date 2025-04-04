@@ -24,7 +24,22 @@ class CompteRendusApiService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
-        return data.map((item) => Praticien.fromMap(item)).toList();
+        
+        // Ajouter des logs pour déboguer les IDs des praticiens
+        print('Données des praticiens reçues: $data');
+        
+        final praticiens = data.map((item) {
+          // Vérifier que l'ID est correctement extrait
+          print('ID du praticien: ${item['id']}');
+          return Praticien.fromMap(item);
+        }).toList();
+        
+        // Vérifier les IDs après conversion
+        for (var p in praticiens) {
+          print('Praticien après conversion - ID: ${p.id}, Nom: ${p.nom} ${p.prenom}');
+        }
+        
+        return praticiens;
       } else {
         throw Exception('Erreur lors de la récupération des praticiens');
       }

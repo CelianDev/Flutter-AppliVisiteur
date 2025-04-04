@@ -14,22 +14,23 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin {
+class _HomeViewState extends State<HomeView>
+    with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
   late AnimationController _animationController;
-  
+
   final List<Widget> _pages = [
     const DashboardView(),
     const CompteRenduCreateWizard(),
     const CompteRendusView(),
   ];
-  
+
   final List<String> _pageTitles = [
     'Tableau de bord',
     'Nouveau compte rendu',
     'Mes comptes rendus',
   ];
-  
+
   @override
   void initState() {
     super.initState();
@@ -39,7 +40,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
     );
     _animationController.forward();
   }
-  
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -56,7 +57,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
       }
     }
   }
-  
+
   @override
   void dispose() {
     _animationController.dispose();
@@ -77,29 +78,33 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     bool isDesktop = MediaQuery.of(context).size.width >= 1024;
-    
+
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
-      appBar: isDesktop ? null : AppBar(
-        title: Text(
-          _pageTitles[_selectedIndex],
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        ),
-        elevation: 0,
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              // TODO: Implémenter la fonctionnalité de notifications
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Notifications: Fonctionnalité à venir')),
-              );
-            },
-            tooltip: 'Notifications',
-          ),
-        ],
-      ),
+      appBar: isDesktop
+          ? null
+          : AppBar(
+              title: Text(
+                _pageTitles[_selectedIndex],
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              ),
+              elevation: 0,
+              centerTitle: true,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined),
+                  onPressed: () {
+                    // TODO: Implémenter la fonctionnalité de notifications
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content:
+                              Text('Notifications: Fonctionnalité à venir')),
+                    );
+                  },
+                  tooltip: 'Notifications',
+                ),
+              ],
+            ),
       body: Row(
         children: [
           if (isDesktop)
@@ -142,7 +147,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'GSB Manager',
+                          'Appli-Visiteur',
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
