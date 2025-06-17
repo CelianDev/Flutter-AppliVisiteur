@@ -411,11 +411,7 @@ class MyApp extends StatelessWidget {
   }
 
   String _getInitialRoute(BuildContext context) {
-    final loginModel = Provider.of<LoginModel>(context, listen: false);
-    if (loginModel.isLoggedIn == null) {
-      return AppRoutes.loadingRoute;
-    }
-    return loginModel.isLoggedIn ? HomeView.routeName : LoginView.routeName;
+    return LoginView.routeName;
   }
 
   Route<dynamic> _generateRoute(
