@@ -1,6 +1,6 @@
 // This is a generated file; do not edit or check into version control.
-FLUTTER_ROOT=/Users/enzomerfeld/SDK/flutter
-FLUTTER_APPLICATION_PATH=/Users/enzomerfeld/repo/flutter/temp_project
+FLUTTER_ROOT=C:\Users\Limule Nava\Documents\Flutter SDK\flutter
+FLUTTER_APPLICATION_PATH=C:\Code_Projects\flutter\temp_project
 COCOAPODS_PARALLEL_CODE_SIGN=true
 FLUTTER_BUILD_DIR=build
 FLUTTER_BUILD_NAME=1.0.0

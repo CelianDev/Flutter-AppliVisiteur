@@ -110,19 +110,21 @@ class _CompteRendusViewState extends State<CompteRendusView>
   }
 
   // Cette méthode sécurisée extrait le nom du praticien et gère les valeurs null
-  String _getPraticienNom(Map<String, dynamic>? praticien, {Map<String, dynamic>? praticienInfo}) {
+  String _getPraticienNom(Map<String, dynamic>? praticien,
+      {Map<String, dynamic>? praticienInfo}) {
     // Si nous avons des informations complètes du praticien, utilisons-les en priorité
     if (praticienInfo != null) {
       final prenom = praticienInfo['prenom']?.toString() ?? '';
       final nom = praticienInfo['nom']?.toString() ?? '';
       final id = praticienInfo['id']?.toString() ?? '';
-      
-      print('Utilisation des informations complètes du praticien - ID: $id, Nom: $nom, Prénom: $prenom');
-      
+
+      print(
+          'Utilisation des informations complètes du praticien - ID: $id, Nom: $nom, Prénom: $prenom');
+
       final nomComplet = '$prenom $nom'.trim();
       return nomComplet.isEmpty ? 'Praticien inconnu' : nomComplet;
     }
-    
+
     // Sinon, utiliser les informations de base du praticien
     if (praticien == null) return 'Praticien inconnu';
 
@@ -373,7 +375,7 @@ class _CompteRendusViewState extends State<CompteRendusView>
             child: Icon(
               icon,
               color: color,
-              size: 24,
+              size: 80,
             ),
           ),
           const SizedBox(height: 8),
@@ -400,15 +402,16 @@ class _CompteRendusViewState extends State<CompteRendusView>
 
   Widget _buildCompteRenduCard(CompteRenduList cr, int index, ThemeData theme) {
     final colorScheme = theme.colorScheme;
-    
+
     // Vérifier si nous avons des informations complètes du praticien
     Map<String, dynamic>? praticienInfo;
     if (cr.praticienInfo != null) {
       praticienInfo = Map<String, dynamic>.from(cr.praticienInfo!);
       print('Informations complètes du praticien disponibles: $praticienInfo');
     }
-    
-    final praticienNom = _getPraticienNom(cr.praticien, praticienInfo: praticienInfo);
+
+    final praticienNom =
+        _getPraticienNom(cr.praticien, praticienInfo: praticienInfo);
 
     final hasMedPresentes = cr.medicaments != null &&
         cr.medicaments!.any((medicament) => medicament['presenter'] == true);
